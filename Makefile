@@ -5,6 +5,7 @@ UNIT_TEST_PATTERN = *_test.py
 INT_TEST_PATH = tests
 INT_TEST_PATTERN = *_int.py
 TEST_CMD = make test
+INT_TEST_CMD = make int-test
 DOCS_PATH = docs
 
 ifndef VERBOSE
@@ -19,6 +20,9 @@ int-test:
 
 watch:
 	watchmedo shell-command --patterns='*.py' --ignore-directories --recursive --command="$(TEST_CMD)" -W .
+
+watch-int:
+	watchmedo shell-command --patterns='*.py' --ignore-directories --recursive --command="$(INT_TEST_CMD)" -W .
 
 watch-docs:
 	watchmedo shell-command --patterns='*.rst;*.py' --ignore-directories --recursive --command="$(DOCS_CMD)" -W .

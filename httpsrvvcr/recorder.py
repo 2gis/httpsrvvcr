@@ -12,7 +12,7 @@ import yaml as pyyaml
 import tornado.ioloop
 import tornado.web
 from tornado.gen import coroutine
-from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import AsyncHTTPClient, HTTPError
 
 
 # We don't support chunked encoding for now
@@ -81,25 +81,29 @@ class VcrWriter:
         }])
 
     def _request_output(self, request):
-        return {
+        text_and_json = self._read_text_and_json(request)
+        output = {
             'path': request.uri,
             'method': request.method,
             'headers': dict(request.headers),
-            'body': request.body.decode('utf8') if request.body else None,
         }
+        output.update(text_and_json)
+        return output
 
     def _response_output(self, response):
+        text_and_json = self._read_text_and_json(response)
+        code_and_headers = {'code': response.code, 'headers': dict(response.headers)}
+        code_and_headers.update(text_and_json)
+        return code_and_headers
+
+    def _read_text_and_json(self, data):
         json_body = None
-        text_body = response.body.decode('utf8') if response.body else None
-        if text_body and 'application/json' in response.headers.get('Content-Type', []):
+        text_body = data.body.decode('utf8') if data.body else None
+        if text_body and 'application/json' in data.headers.get('Content-Type', []):
             json_body = self._json.loads(text_body)
             text_body = None
-        return {
-            'code': response.code,
-            'headers': dict(response.headers),
-            'text': text_body,
-            'json': json_body,
-        }
+        return {'text': text_body, 'json': json_body}
+
 
 
 class ProxyHandler(tornado.web.RequestHandler):
@@ -129,7 +133,7 @@ class ProxyHandler(tornado.web.RequestHandler):
 
     @coroutine
     def prepare(self):
-        res = yield self._proxy_request()
+        res = yield self._make_request()
         self._writer.write(self.request, res)
         self.write(res.body)
         self.set_status(res.code)
@@ -138,6 +142,17 @@ class ProxyHandler(tornado.web.RequestHandler):
                 self.set_header(name, value)
         self.set_header('Access-Control-Allow-Origin', '*')
         self.finish()
+
+    @coroutine
+    def _make_request(self):
+        try:
+            res = yield self._proxy_request()
+            return res
+        except HTTPError as error:
+            if not error.response:
+                raise error
+            return error.response
+
 
     def _proxy_request(self):
         return self._httpclient.fetch(

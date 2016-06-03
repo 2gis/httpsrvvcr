@@ -141,7 +141,8 @@ class VcrWriterTest(unittest.TestCase):
                 'path': self.request.uri,
                 'method': self.request.method,
                 'headers': self.request.headers,
-                'body': self.request.body,
+                'text': self.request.body,
+                'json': None,
             },
             'response': {
                 'code': self.response.code,
@@ -150,6 +151,12 @@ class VcrWriterTest(unittest.TestCase):
                 'json': None,
             },
         }])
+
+    def test_should_parse_request_json(self):
+        self.request.headers['Content-Type'] = 'application/json'
+        self.request.body = b'request json'
+        self.writer.write(self.request, self.response)
+        self.json.loads.assert_called_with(self.request.body.decode('utf8'))
 
     def test_should_parse_response_json(self):
         self.response.headers['Content-Type'] = 'application/json'
@@ -166,13 +173,34 @@ class VcrWriterTest(unittest.TestCase):
                 'path': self.request.uri,
                 'method': self.request.method,
                 'headers': self.request.headers,
-                'body': self.request.body,
+                'text': self.request.body,
+                'json': None,
             },
             'response': {
                 'code': self.response.code,
                 'headers': self.response.headers,
                 'text': None,
                 'json': self.parsed_json,
+            },
+        }])
+
+    def test_should_write_request_json(self):
+        self.request.headers['Content-Type'] = 'application/json'
+        self.request.body = b'response json'
+        self.writer.write(self.request, self.response)
+        self.wrapped_writer.write.assert_called_with([{
+            'request': {
+                'path': self.request.uri,
+                'method': self.request.method,
+                'headers': self.request.headers,
+                'json': self.parsed_json,
+                'text': None,
+            },
+            'response': {
+                'code': self.response.code,
+                'headers': self.response.headers,
+                'text': self.response.body.decode('utf8'),
+                'json': None,
             },
         }])
 

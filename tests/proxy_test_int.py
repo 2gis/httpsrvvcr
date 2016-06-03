@@ -49,6 +49,8 @@ class IntegrationalTest(unittest.TestCase):
         res = requests.get(PROXY_ADDRESS + '/hi?name=Dude')
         self.assertEqual(res.text, 'Hello')
 
-
-
+    def test_should_proxy_errorous_code(self):
+        IntegrationalTest.server.on('GET', '/').text('Goodbye', status=500)
+        res = requests.get(PROXY_ADDRESS + '/')
+        self.assertEqual(res.text, 'Goodbye')
 
