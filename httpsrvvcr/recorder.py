@@ -42,8 +42,7 @@ class YamlWriter:
         :type data: any
         :param data: object that will be conveted to yaml string
         '''
-        dumped = self._yaml.dump(
-            data, width=100, default_flow_style=False, allow_unicode=True)
+        dumped = self._yaml.dump(data, default_flow_style=False, allow_unicode=True)
         self._writer.write(dumped)
 
 
@@ -159,6 +158,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             self._target + self.request.uri,
             method=self.request.method,
             headers=self.request.headers,
+            allow_nonstandard_methods=True,
             body=self.request.body or None)
 
 

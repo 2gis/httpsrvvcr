@@ -63,6 +63,7 @@ class ProxyHandlerTest(AsyncTestCase):
             self.target + self.request.uri,
             method=self.request.method,
             headers=self.request.headers,
+            allow_nonstandard_methods=True,
             body=self.request.body)
 
     @gen_test
@@ -112,12 +113,12 @@ class YamlWriterTest(unittest.TestCase):
         self.yaml = Mock()
         self.yaml.dump = Mock(return_value=self.dumped)
         self.ywriter = recorder.YamlWriter(self.wrapped_writer, self.yaml)
-        self.data = { 'something': 'here' }
+        self.data = {'something': 'here'}
 
     def test_should_dump_yaml(self):
         self.ywriter.write(self.data)
         self.yaml.dump.assert_called_with(
-            self.data, width=100, default_flow_style=False, allow_unicode=True)
+            self.data, default_flow_style=False, allow_unicode=True)
 
     def test_should_write_to_wrapped_writer(self):
         self.ywriter.write(self.data)
