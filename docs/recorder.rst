@@ -1,0 +1,5 @@
+Recorder
+========
+
+.. automodule:: recorder
+  :members:

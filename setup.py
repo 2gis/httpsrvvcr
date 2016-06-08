@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='httpsrvvcr',
-    version='0.1.2',
+    version='0.1.3',
     description='VCR recording proxy-server for usage with httpsrv',
     long_description=long_description,
     url='https://github.com/2gis/httpsrvvcr',

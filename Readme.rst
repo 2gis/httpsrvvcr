@@ -19,7 +19,7 @@ Usage
 
 ::
 
-    python -m httpsrvvcr.recorder 8080 http://some-api-url.com/api > fixture.yaml
+    python -m httpsrvvcr.recorder 8080 http://some-api-url.com/api > tape.yaml
 
 
 .. _httpsrv: https://github.com/nyrkovalex/httpsrv

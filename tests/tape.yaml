@@ -1,0 +1,36 @@
+- request:
+    path: /api/users
+    method: POST
+    headers:
+      Content-Type: application/json
+    text: null
+    json:
+      name: John
+      last_name: Doe
+  response:
+    code: 201
+    headers:
+      Content-Type: application/json
+    text: null
+    json:
+      id: 42
+      name: John
+      last_name: Doe
+- request:
+    path: /api/users
+    method: POST
+    headers:
+      Content-Type: application/json
+    text: null
+    json:
+      name: Jane
+      last_name: Doe
+  response:
+    code: 201
+    headers:
+      Content-Type: application/json
+    text: null
+    json:
+      id: 43
+      name: Jane
+      last_name: Doe

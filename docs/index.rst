@@ -5,11 +5,7 @@
 
 .. toctree::
 
+  recorder
+  player
+
 .. include:: ../Readme.rst
-
-API
----
-
-.. automodule:: recorder
-  :members:
-
