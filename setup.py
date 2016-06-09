@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='httpsrvvcr',
-    version='0.1.5',
+    version='0.1.6',
     description='VCR recording proxy-server for usage with httpsrv',
     long_description=long_description,
     url='https://github.com/2gis/httpsrvvcr',
@@ -35,8 +35,8 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     keywords='api http mock testing vcr',
-    install_requires=['tornado', 'pyyaml'],
+    install_requires=['tornado', 'pyyaml', 'httpsrv'],
     extras_require={
-        'test': ['requests', 'httpsrv'],
+        'test': ['requests'],
     },
 )
