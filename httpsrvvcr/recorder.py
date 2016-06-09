@@ -57,10 +57,14 @@ class VcrWriter:
 
     :type json: json
     :param json: json module from standard library
+
+    :type no_headers: bool
+    :param no_headers: if ``True`` then no headers will be recorded for request or resposne
     '''
-    def __init__(self, writer, json):
+    def __init__(self, writer, json, no_headers=False):
         self._writer = writer
         self._json = json
+        self._no_headers = no_headers
 
     def write(self, request, response):
         '''
@@ -84,14 +88,17 @@ class VcrWriter:
         output = {
             'path': request.uri,
             'method': request.method,
-            'headers': dict(request.headers),
+            'headers': None if self._no_headers else dict(request.headers),
         }
         output.update(text_and_json)
         return output
 
     def _response_output(self, response):
         text_and_json = self._read_text_and_json(response)
-        code_and_headers = {'code': response.code, 'headers': dict(response.headers)}
+        code_and_headers = {
+            'code': response.code,
+            'headers': None if self._no_headers else dict(response.headers),
+        }
         code_and_headers.update(text_and_json)
         return code_and_headers
 
@@ -162,7 +169,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             body=self.request.body or None)
 
 
-def run(port, target):
+def run(port, target, no_headers=False):
     '''
     Starts a vcr proxy on a given ``port`` using ``target`` as a request destination
 
@@ -172,8 +179,11 @@ def run(port, target):
     :type target: str
     :param target: URL to proxy requests to, must be passed with protocol,
         e.g. ``http://some-url.com``
+
+    :type no_headers: bool
+    :param no_headers: if ``True`` then no headers will be recorded for request or resposne
     '''
-    vcr_writer = VcrWriter(YamlWriter(sys.stdout, pyyaml), pyjson)
+    vcr_writer = VcrWriter(YamlWriter(sys.stdout, pyyaml), pyjson, no_headers)
     app = tornado.web.Application([
         (r'.*', ProxyHandler, dict(httpclient=AsyncHTTPClient(), target=target, writer=vcr_writer))
     ])
@@ -192,6 +202,8 @@ if __name__ == '__main__':
         description='Recording proxy for httpsrv library', prog='python -m httpsrvvcr.recorder')
     parser.add_argument('port', help='port our proxy will be binded to', type=int)
     parser.add_argument('target', help='destination server URL including protocol', type=str)
+    parser.add_argument('--no-headers', help='do not record any headers',
+                        action='store_const', const=True, default=False)
     args = parser.parse_args()
-    run(args.port, args.target)
+    run(args.port, args.target, args.no_headers)
 

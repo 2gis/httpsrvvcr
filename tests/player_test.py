@@ -86,6 +86,61 @@ class PlayerTest(unittest.TestCase):
             call(response['text'], response['code'], response['headers']),
         ])
 
+    def test_should_ignore_transfer_encoding(self):
+        tape = {
+            'request': {
+                'path': '/api/users',
+                'method': 'POST',
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Transfer-Encoding': 'chunked',
+                },
+                'text': None,
+                'json': None,
+            },
+            'response': {
+                'code': 200,
+                'headers': {'Content-Type': 'text/html'},
+                'text': '<h1>Boom</h1>',
+                'json': None,
+            }
+        }
+        self.player.play([tape])
+        self.server.on.assert_has_calls([
+            call('POST', '/api/users', {'Content-Type': 'application/json'},
+                 json=None, text=None),
+        ])
+
+    def test_should_add_cors_header_to_response(self):
+        tape = {
+            'request': {
+                'path': '/api/users',
+                'method': 'POST',
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Transfer-Encoding': 'chunked',
+                },
+                'text': None,
+                'json': None,
+            },
+            'response': {
+                'code': 200,
+                'headers': {'Content-Type': 'text/html'},
+                'text': '<h1>Boom</h1>',
+                'json': None,
+            }
+        }
+        cors_player = Player(self.server, True)
+        cors_player.play([tape])
+        response = tape['response']
+        self.rule.text.assert_has_calls([
+            call(response['text'], response['code'], {
+                'Content-Type': 'text/html',
+                'Access-Control-Allow-Origin': '*'
+            }),
+        ])
+
+
 class YamlReaderTest(unittest.TestCase):
     def test_should_read_tape_from_yaml_text(self):
         text = '''

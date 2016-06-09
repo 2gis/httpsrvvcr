@@ -205,5 +205,26 @@ class VcrWriterTest(unittest.TestCase):
             },
         }])
 
+    def test_should_write_no_headers(self):
+        writer = recorder.VcrWriter(self.wrapped_writer, self.json, True)
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.body = b'response json'
+        writer.write(self.request, self.response)
+        self.wrapped_writer.write.assert_called_with([{
+            'request': {
+                'path': self.request.uri,
+                'method': self.request.method,
+                'headers': None,
+                'text': self.request.body,
+                'json': None,
+            },
+            'response': {
+                'code': self.response.code,
+                'headers': None,
+                'text': None,
+                'json': self.parsed_json,
+            },
+        }])
+
 
 

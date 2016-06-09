@@ -6,6 +6,11 @@ using :class:`httpsrv.Server` provided
 import yaml
 
 
+_IGNORE_HEADERS = [
+    'transfer-encoding'
+]
+
+
 def tape_from_yaml(yaml_text):
     '''
     Parses yaml tape into python dictionary
@@ -16,6 +21,13 @@ def tape_from_yaml(yaml_text):
     return yaml.load(yaml_text)
 
 
+def _filter_headers(headers):
+    headers = headers or {}
+    return dict((name, value) for name, value in headers.items()
+                if name.lower() not in _IGNORE_HEADERS)
+
+
+
 class Player:
     '''
     Player wraps the :class:`httpsrv.Server`
@@ -23,9 +35,13 @@ class Player:
 
     :type server: httpsrv.Server
     :param server: server thta will be loaded with rules from vcr tapes
+
+    :type add_cors: bool
+    :param add_cors: if ``True`` player will add CORS header to all responses
     '''
-    def __init__(self, server):
+    def __init__(self, server, add_cors=False):
         self._server = server
+        self._add_cors = add_cors
 
     def play(self, tape):
         '''
@@ -37,19 +53,27 @@ class Player:
         for rule in tape:
             self._set_rule(rule)
 
-    def _set_rule(self, rule):
-        request = rule['request']
-        response = rule['response']
+    def _set_rule(self, action):
+        request = action['request']
+        response = action['response']
+        req_headers = _filter_headers(request['headers'])
         # httpsrv gurantees that json param will have priority over text
         rule = self._server.on(
-            request['method'], request['path'], request['headers'],
+            request['method'], request['path'], req_headers,
             text=request['text'], json=request['json'])
+        self._set_response(rule, response)
+
+    def _set_response(self, rule, response):
+        headers = response['headers'] or {}
+        if self._add_cors:
+            headers['Access-Control-Allow-Origin'] = '*'
         if response['json']:
-            rule.json(response['json'], response['code'], response['headers'])
+            rule.json(response['json'], response['code'], headers)
         elif response['text']:
-            rule.text(response['text'], response['code'], response['headers'])
+            rule.text(response['text'], response['code'], headers)
         else:
-            rule.statuc(response['code'], response['headers'])
+            rule.status(response['code'], headers)
+
 
     def load(self, tape_file_name):
         '''
