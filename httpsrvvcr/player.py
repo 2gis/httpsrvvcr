@@ -3,6 +3,8 @@ VCR Player plays tapes recorded with ``httpsrvvcr.recorder``
 using :class:`httpsrv.Server` provided
 '''
 
+from functools import wraps
+
 import yaml
 
 
@@ -87,13 +89,14 @@ class Player:
         :type tape_file_name: str
         :param tape_file_name: tape filename to load
         '''
-        def _wrapper(wrapped):
-            def _decorator(*args, **kwargs):
+        def _decorator(wrapped):
+            @wraps(wrapped)
+            def _wrapper(*args, **kwargs):
                 with open(tape_file_name, 'r', encoding='utf8') as tape_file:
                     tape_yaml = tape_file.read()
                     tape = tape_from_yaml(tape_yaml)
                     self.play(tape)
                     wrapped(*args, **kwargs)
-            return _decorator
-        return _wrapper
+            return _wrapper
+        return _decorator
 

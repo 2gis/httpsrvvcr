@@ -61,10 +61,11 @@ class VcrWriter:
     :type no_headers: bool
     :param no_headers: if ``True`` then no headers will be recorded for request or resposne
     '''
-    def __init__(self, writer, json, no_headers=False):
+    def __init__(self, writer, json, no_headers=False, skip_methods=None):
         self._writer = writer
         self._json = json
         self._no_headers = no_headers
+        self._skip_methods = skip_methods or []
 
     def write(self, request, response):
         '''
@@ -78,6 +79,8 @@ class VcrWriter:
         :type response: tornado.httpclient.HTTPResponse
         :param response: client response
         '''
+        if request.method in self._skip_methods:
+            return
         self._writer.write([{
             'request': self._request_output(request),
             'response': self._response_output(response)
@@ -169,7 +172,7 @@ class ProxyHandler(tornado.web.RequestHandler):
             body=self.request.body or None)
 
 
-def run(port, target, no_headers=False):
+def run(port, target, no_headers=False, skip_methods=None):
     '''
     Starts a vcr proxy on a given ``port`` using ``target`` as a request destination
 
@@ -182,8 +185,11 @@ def run(port, target, no_headers=False):
 
     :type no_headers: bool
     :param no_headers: if ``True`` then no headers will be recorded for request or resposne
+
+    :type skip_methods: list
+    :param skip_methods: recorder will not write any requests with provided methods to output
     '''
-    vcr_writer = VcrWriter(YamlWriter(sys.stdout, pyyaml), pyjson, no_headers)
+    vcr_writer = VcrWriter(YamlWriter(sys.stdout, pyyaml), pyjson, no_headers, skip_methods)
     app = tornado.web.Application([
         (r'.*', ProxyHandler, dict(httpclient=AsyncHTTPClient(), target=target, writer=vcr_writer))
     ])
@@ -204,6 +210,8 @@ if __name__ == '__main__':
     parser.add_argument('target', help='destination server URL including protocol', type=str)
     parser.add_argument('--no-headers', help='do not record any headers',
                         action='store_const', const=True, default=False)
+    parser.add_argument('--skip-methods', help='method to skip, can pass multiple times',
+                        type=str, nargs='*', default=[])
     args = parser.parse_args()
-    run(args.port, args.target, args.no_headers)
+    run(args.port, args.target, args.no_headers, args.skip_methods)
 

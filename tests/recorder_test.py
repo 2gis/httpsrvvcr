@@ -226,5 +226,13 @@ class VcrWriterTest(unittest.TestCase):
             },
         }])
 
+    def test_shoud_skip_target_methods(self):
+        writer = recorder.VcrWriter(self.wrapped_writer, self.json, skip_methods=['POST'])
+        self.request.method = 'POST'
+        writer.write(self.request, self.response)
+        self.assertFalse(self.wrapped_writer.write.called)
+
+
+
 
 

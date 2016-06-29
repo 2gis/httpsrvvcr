@@ -55,3 +55,13 @@ class RealTapePlaybackTest(unittest.TestCase):
             'last_name': 'Doe'
         })
 
+    def test_should_work_well_with_unbound_function(self):
+
+        @player.load('tests/tape.yaml')
+        def unbound_function(expected_code):
+            res = requests.post('http://localhost:8080/api/users',
+                                json={'name': 'John', 'last_name': 'Doe'})
+            self.assertEqual(res.status_code, expected_code)
+
+        unbound_function(201)
+

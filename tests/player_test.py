@@ -140,6 +140,13 @@ class PlayerTest(unittest.TestCase):
             }),
         ])
 
+    def test_should_create_properly_named_decorator(self):
+        @self.player.load('foo')
+        def some_wrapped():
+            pass
+
+        self.assertEqual(some_wrapped.__name__, 'some_wrapped')
+
 
 class YamlReaderTest(unittest.TestCase):
     def test_should_read_tape_from_yaml_text(self):

@@ -27,6 +27,11 @@ It is possible to skip headers recording with ``--no-headers`` flag::
     python -m httpsrvvcr.recorder 8080 http://some-api-url.com/api --no-headers > tape.yaml
 
 
+Once can also exclude some request methods from output completely::
+
+    python -m httpsrvvcr.recorder 8080 http://some-api-url.com/api --skip-methods OPTIONS TRACE > tape.yaml
+
+
 After vcr tape is recorded one can use ``httpsrvvcr.player`` module::
 
     import unittest
