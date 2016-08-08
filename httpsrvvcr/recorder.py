@@ -144,7 +144,8 @@ class ProxyHandler(tornado.web.RequestHandler):
     def prepare(self):
         res = yield self._make_request()
         self._writer.write(self.request, res)
-        self.write(res.body)
+        if res.body:
+            self.write(res.body)
         self.set_status(res.code)
         for name, value in res.headers.items():
             if name not in EXCLUDED_HEADERS:

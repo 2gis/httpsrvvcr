@@ -3,14 +3,18 @@ from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 long_description = None
+version = None
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'Readme.rst'), encoding='utf-8') as f:
     long_description = f.read()
+
+with open(path.join(here, '.version'), encoding='utf-8') as f:
+    version = f.read()
 
 setup(
     name='httpsrvvcr',
-    version='0.1.7',
+    version=version,
     description='VCR recording proxy-server for usage with httpsrv',
     long_description=long_description,
     url='https://github.com/2gis/httpsrvvcr',

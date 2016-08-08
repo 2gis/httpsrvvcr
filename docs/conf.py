@@ -60,7 +60,12 @@ author = '2GIS'
 # built documents.
 #
 # The short X.Y version.
-version = '0.1.7'
+version = None
+
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, '.version'), encoding='utf-8') as f:
+    version = f.read()
+
 # The full version, including alpha/beta/rc tags.
 release = version
 

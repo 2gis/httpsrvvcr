@@ -77,6 +77,12 @@ class ProxyHandlerTest(AsyncTestCase):
         self.handler.write.assert_called_with(self.response.body)
 
     @gen_test
+    def test_should_respond_without_body(self):
+        self.response.body = b''
+        yield self.handler.prepare()
+        self.assertFalse(self.handler.write.called);
+
+    @gen_test
     def test_should_respond_with_target_headers(self):
         yield self.handler.prepare()
         self.handler.set_header.assert_has_calls([
