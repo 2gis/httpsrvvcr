@@ -65,3 +65,9 @@ class RealTapePlaybackTest(unittest.TestCase):
 
         unbound_function(201)
 
+    @player.load('tests/tape.yaml')
+    def test_should_respond_to_multipart_post(self):
+        self.maxDiff = None
+        res = requests.post('http://localhost:8080/upload', files=dict(file=b'contents'))
+        self.assertEqual(res.text, 'Got it')
+

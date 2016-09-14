@@ -34,3 +34,19 @@
       id: 43
       name: Jane
       last_name: Doe
+- request:
+    headers:
+      Accept: '*/*'
+      Content-Length: '148'
+      Content-Type: multipart/form-data; boundary=b2386331df82442fb4bb67fdc4b98739
+    json: null
+    method: POST
+    path: /upload
+    text: "--b2386331df82442fb4bb67fdc4b98739\r\nContent-Disposition: form-data; name=\"\
+      file\"; filename=\"file\"\r\n\r\ncontents\r\n--b2386331df82442fb4bb67fdc4b98739--\r\
+      \n"
+  response:
+    code: 200
+    headers: null
+    json: null
+    text: Got it

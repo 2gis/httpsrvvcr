@@ -24,10 +24,10 @@ def tape_from_yaml(yaml_text):
 
 
 def _filter_headers(headers):
-    headers = headers or {}
+    if not headers:
+        return None
     return dict((name, value) for name, value in headers.items()
                 if name.lower() not in _IGNORE_HEADERS)
-
 
 
 class Player:
@@ -58,24 +58,55 @@ class Player:
     def _set_rule(self, action):
         request = action['request']
         response = action['response']
-        req_headers = _filter_headers(request['headers'])
-        # httpsrv gurantees that json param will have priority over text
-        rule = self._server.on(
-            request['method'], request['path'], req_headers,
-            text=request['text'], json=request['json'])
+
+        rule = self._create_rule(request)
         self._set_response(rule, response)
 
+    def _create_rule(self, request):
+        headers = _filter_headers(request.get('headers'))
+        if request.get('files'):
+            return self._new_files_rule(request, headers)
+        elif request.get('json'):
+            return self._new_json_rule(request, headers)
+        elif request.get('form'):
+            return self._new_form_fule(request, headers)
+        elif request.get('text'):
+            return self._new_text_rule(request, headers)
+        return self._new_any_rule(request, headers)
+
+    def _new_files_rule(self, request, headers):
+        return self._server.on_files(
+            request['method'],
+            request['path'],
+            request['files'],
+            request.get('form'),
+            headers)
+
+    def _new_json_rule(self, request, headers):
+        return self._server.on_json(
+            request['method'], request['path'], request['json'], headers)
+
+    def _new_form_fule(self, request, headers):
+        return self._server.on_form(
+            request['method'], request['path'], request['form'], headers)
+
+    def _new_text_rule(self, request, headers):
+        return self._server.on_text(
+            request['method'], request['path'], request['text'], headers)
+
+    def _new_any_rule(self, request, headers):
+        return self._server.on_any(request['method'], request['path'], headers)
+
     def _set_response(self, rule, response):
-        headers = response['headers'] or {}
+        headers = response.get('headers')
         if self._add_cors:
             headers['Access-Control-Allow-Origin'] = '*'
-        if response['json']:
+        if response.get('json'):
             rule.json(response['json'], response['code'], headers)
-        elif response['text']:
+        elif response.get('text'):
             rule.text(response['text'], response['code'], headers)
         else:
             rule.status(response['code'], headers)
-
 
     def load(self, tape_file_name):
         '''

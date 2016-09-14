@@ -54,3 +54,8 @@ class IntegrationalTest(unittest.TestCase):
         res = requests.get(PROXY_ADDRESS + '/')
         self.assertEqual(res.text, 'Goodbye')
 
+    def test_should_proxy_uploaded_file(self):
+        IntegrationalTest.server.on('POST', '/upload').text('Got it', status=200)
+        res = requests.post(PROXY_ADDRESS + '/upload', files=dict(file=b'contents'))
+        self.assertEqual(res.text, 'Got it')
+
