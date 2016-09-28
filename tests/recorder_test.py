@@ -106,6 +106,17 @@ class ProxyHandlerTest(AsyncTestCase):
             'Access-Control-Allow-Origin', '*')
 
     @gen_test
+    def test_should_rewrite_host_header_in_request(self):
+        self.request.headers = { 'Host': '127.0.0.1:3000' }
+        yield self.handler.prepare()
+        self.client.fetch.assert_called_with(
+            self.target + self.request.uri,
+            method=self.request.method,
+            headers={'Host': 'nowhere.com'},
+            allow_nonstandard_methods=True,
+            body=self.request.body)
+
+    @gen_test
     def test_should_exclude_headers_in_response(self):
         self.response.headers['Transfer-Encoding'] = 'chunked'
         yield self.handler.prepare()

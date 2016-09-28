@@ -7,6 +7,7 @@ that can further be used as httpsrv fixture
 import sys
 import argparse
 import json as pyjson
+from urllib.parse import urlparse
 
 import yaml as pyyaml
 import tornado.ioloop
@@ -139,6 +140,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         self._httpclient = httpclient
         self._target = target
         self._writer = writer
+        self._target_host = self._extract_host(target)
 
     @coroutine
     def prepare(self):
@@ -163,14 +165,24 @@ class ProxyHandler(tornado.web.RequestHandler):
                 raise error
             return error.response
 
+    def _extract_host(self, target):
+        parsed = urlparse(target)
+        return parsed.netloc
 
     def _proxy_request(self):
         return self._httpclient.fetch(
             self._target + self.request.uri,
             method=self.request.method,
-            headers=self.request.headers,
+            headers=self._rewrite_host(self.request.headers),
             allow_nonstandard_methods=True,
             body=self.request.body or None)
+
+    def _rewrite_host(self, headers):
+        if 'Host' not in headers:
+            return headers
+        copy = headers.copy()
+        copy['Host'] = self._target_host
+        return copy
 
 
 def run(port, target, no_headers=False, skip_methods=None):
